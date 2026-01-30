@@ -39,11 +39,15 @@ const PlayerControls: React.FC<{ waitingPlayers: WaitingPlayer[] }> = ({ waiting
                 teamPlayers[player.uid] = { uid: player.uid, name: player.name };
             });
 
+            // Randomly select the first typist for the new team
+            const firstTypist = team[Math.floor(Math.random() * team.length)];
+
             const newGameSession = {
                 players: teamPlayers,
                 level: 1,
                 createdAt: Date.now(),
                 score: 0,
+                currentTypist: firstTypist.uid, // Set the initial typist
             };
 
             const newSessionId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
