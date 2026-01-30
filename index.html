@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cyber Treasure Hunt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Orbitron:wght@400;700&display=swap');
+      body {
+        font-family: 'Roboto Mono', monospace;
+        background-color: #0d1117;
+        color: #c9d1d9;
+      }
+      .font-orbitron {
+        font-family: 'Orbitron', sans-serif;
+      }
+      .bg-grid {
+        background-color: #0d1117;
+        background-image:
+          linear-gradient(rgba(201, 209, 217, 0.07) 1px, transparent 1px),
+          linear-gradient(to right, rgba(201, 209, 217, 0.07) 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://ga.jspm.io/npm:react@18.2.0/index.js",
+    "react-dom": "https://ga.jspm.io/npm:react-dom@18.2.0/index.js",
+    "react/jsx-runtime": "https://ga.jspm.io/npm:react@18.2.0/jsx-runtime.js",
+    "react-dom/client": "https://ga.jspm.io/npm:react-dom@18.2.0/client.js",
+    "react-confetti": "https://ga.jspm.io/npm:react-confetti@6.1.0/dist/react-confetti.js",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
