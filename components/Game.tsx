@@ -57,7 +57,7 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
     };
 
     const triggerFailMeme = () => {
-        const shownMemesForLevel = shownMemes?.[level] || [];
+        let shownMemesForLevel = shownMemes?.[level] || [];
         let availableMemes = FAIL_MEME_VIDEOS.filter(meme => !shownMemesForLevel.includes(meme));
 
         if (availableMemes.length === 0) {
