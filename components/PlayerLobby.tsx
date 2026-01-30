@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { ref, set, onValue, query, orderByChild, equalTo } from 'firebase/database';
-import TeamIntro from './TeamIntro';
 import Game from './Game';
 
 interface PlayerLobbyProps {
     uid: string;
 }
 
-interface Player {
-    uid: string;
-    name: string;
-}
-
 const PlayerLobby: React.FC<PlayerLobbyProps> = ({ uid }) => {
-    const [view, setView] = useState<'joining' | 'waiting' | 'team_intro' | 'in_game'>('joining');
+    const [view, setView] = useState<'joining' | 'waiting' | 'in_game'>('joining');
     const [playerName, setPlayerName] = useState('');
     const [error, setError] = useState('');
-    const [gameSession, setGameSession] = useState<{ id: string, players: Player[] } | null>(null);
+    const [gameSessionId, setGameSessionId] = useState<string | null>(null);
 
     const handleJoinLobby = () => {
         if (!playerName.trim()) {
@@ -39,22 +33,16 @@ const PlayerLobby: React.FC<PlayerLobbyProps> = ({ uid }) => {
             if (snapshot.exists()) {
                 const sessionsData = snapshot.val();
                 const sessionId = Object.keys(sessionsData)[0];
-                const session = sessionsData[sessionId];
-                const team = Object.values(session.players) as Player[];
-                setGameSession({ id: sessionId, players: team });
-                setView('team_intro');
+                setGameSessionId(sessionId);
+                setView('in_game'); // Go directly to the game
             }
         });
 
         return () => unsubscribe();
     }, [uid]);
 
-    if (view === 'team_intro' && gameSession) {
-        return <TeamIntro uid={uid} team={gameSession.players} onProceed={() => setView('in_game')} />;
-    }
-
-    if (view === 'in_game' && gameSession) {
-        return <Game uid={uid} sessionId={gameSession.id} />;
+    if (view === 'in_game' && gameSessionId) {
+        return <Game uid={uid} sessionId={gameSessionId} />;
     }
 
     if (view === 'waiting') {
