@@ -16,6 +16,18 @@ interface DisplayMessage {
     type: 'success' | 'failure';
 }
 
+const AudioPlayer: React.FC<{ src: string; onClick: () => void }> = ({ src, onClick }) => (
+    <div
+        className="bg-slate-900 border border-cyan-400/30 p-4 rounded-lg my-4 cursor-pointer hover:shadow-cyan-500/50 hover:shadow-lg transition-shadow"
+        onClick={onClick}
+        title="Knock, and it shall be opened..."
+    >
+        <h2 className="font-orbitron text-lg text-cyan-400 mb-2">AUDITORY CLUE // LISTEN CAREFULLY</h2>
+        <audio controls loop autoPlay src={src} className="w-full" />
+    </div>
+);
+
+
 const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
     const [gameState, setGameState] = useState<any>(null);
     const [answer, setAnswer] = useState('');
@@ -28,7 +40,6 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
             const data = snapshot.val();
             setGameState(data);
 
-            // Handle meme display
             if (data?.lastSuccessMemeUrl) {
                 setCurrentMemeDisplayUrl(data.lastSuccessMemeUrl);
             } else if (data?.lastFailureMemeUrl) {
@@ -37,8 +48,6 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
                 setCurrentMemeDisplayUrl(null);
             }
 
-            // Handle text message display
-            // Only show text message if no meme is active, otherwise meme takes precedence
             if (currentMemeDisplayUrl === null) { 
                 if (data?.lastSuccessText) {
                     setCurrentMessage({ text: data.lastSuccessText, type: 'success' });
@@ -48,11 +57,11 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
                     setCurrentMessage(null);
                 }
             } else {
-                setCurrentMessage(null); // Hide text message if a meme is active
+                setCurrentMessage(null);
             }
         });
         return () => unsubscribe();
-    }, [sessionId, currentMemeDisplayUrl]); // currentMemeDisplayUrl added to dependencies
+    }, [sessionId, currentMemeDisplayUrl]);
 
     const { level, players, currentTypist, shownMemes, shownSuccessMemes } = gameState || {};
 
@@ -92,15 +101,14 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
         const updates = { 
             lastFailureMemeUrl: randomMeme, 
             [`shownMemes/${level}`]: [...shownMemesForLevel, randomMeme],
-            lastFailureText: 'ACCESS DENIED. Anomaly detected. Re-evaluate strategy.', // Synchronize failure text
-            lastSuccessText: null, // Clear any previous success text
+            lastFailureText: 'ACCESS DENIED. Anomaly detected. Re-evaluate strategy.',
+            lastSuccessText: null,
         };
         update(ref(db, `game_sessions/${sessionId}`), updates);
     };
 
     const handleCloseMeme = () => {
         setCurrentMemeDisplayUrl(null);
-        // Clear both meme URLs and text messages in Firebase
         update(ref(db, `game_sessions/${sessionId}`), { 
             lastFailureMemeUrl: null,
             lastSuccessMemeUrl: null,
@@ -127,14 +135,12 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
             score: (gameState.score || 0) + 100,
             lastLevelCompletedAt: Date.now(),
             currentTypist: nextTypistId,
-            // Clear any lingering failure states from the previous level
             lastFailureMemeUrl: null,
             lastFailureText: null,
-            [`shownMemes/${level}`]: null, // Clear failure memes history for this level
-            // Set success meme and text
+            [`shownMemes/${level}`]: null,
             lastSuccessMemeUrl: randomSuccessMeme,
             [`shownSuccessMemes/${level}`]: [...shownSuccessMemesForLevel, randomSuccessMeme],
-            lastSuccessText: 'SEQUENCE DECRYPTED! Advancing to next phase.', // Synchronize success text
+            lastSuccessText: 'SEQUENCE DECRYPTED! Advancing to next phase.',
         };
 
         if (level === LEVELS.length) {
@@ -144,8 +150,11 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
             updates[`shownSuccessMemes/${level}`] = null;
             updates.lastSuccessText = 'MISSION OBJECTIVE ACHIEVED! All sequences decrypted.';
         }
-
         update(ref(db, `game_sessions/${sessionId}`), updates);
+    };
+
+    const handleAudioClick = () => {
+        console.log("Audio player clicked! Waiting for user clarification on what should happen.");
     };
 
     const renderContent = () => {
@@ -174,7 +183,7 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
 
         return (
             <>
-                {currentMessage && ( // Always display text message, it will be above meme if meme is active
+                {currentMessage && (
                     <p className={`font-orbitron text-lg font-bold mb-4 ${messageColor}`}>
                         {currentMessage.text}
                     </p>
@@ -182,9 +191,13 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
                 <h1 className="font-orbitron text-2xl md:text-3xl text-cyan-300 mb-2">SEQUENCE {level}</h1>
                 <p className="text-lg text-slate-300 mb-6">{currentLevelData.question}</p>
 
+                {level === 1 && currentLevelData.audioClue && (
+                    <AudioPlayer src={currentLevelData.audioClue} onClick={handleAudioClick} />
+                )}
+
                 <div className="bg-slate-900 border border-cyan-400/30 p-4 rounded-lg my-4">
                     <h2 className="font-orbitron text-lg text-cyan-400 mb-2">DATA FRAGMENT // AGENT_{uid.substring(0,4)}</h2>
-                    <p className="text-2xl font-mono text-white animate-pulse">{myClue}</p>
+                    <p className="text-2xl font-mono text-white animate-pulse">{myClue || "No text clue assigned for this sequence."}</p>
                 </div>
 
                 <div className="my-6">

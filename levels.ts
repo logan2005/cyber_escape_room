@@ -2,9 +2,19 @@ export interface Level {
     question: string;
     clues: string[]; // Each string in the array is a piece of the clue for one player
     answer: string;
+    audioClue?: string; // Optional audio clue
 }
 
 export const LEVELS: Level[] = [
+    {
+        question: "Decipher the auditory clue to unlock the first sequence.",
+        clues: [
+            "Answer Screen la Illai",
+            "Thattungal Thirakkapadum",
+        ],
+        answer: "Naan Dhan Answer",
+        audioClue: "/audio/vittupona_loop.mp3",
+    },
     {
         question: "A popular front-end library asks: 'What is the answer to the ultimate question of life, the universe, and everything?'",
         clues: [
