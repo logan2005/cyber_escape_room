@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import { LEVELS } from '../levels';
-import { FAIL_MEME_VIDEOS } from '../constants';
+import { FAIL_MEME_VIDEOS, SUCCESS_MEME_VIDEOS } from '../constants';
 import TeamStatsHUD from './TeamStatsHUD';
 import MemePlayer from './MemePlayer';
 
@@ -15,21 +15,26 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
     const [gameState, setGameState] = useState<any>(null);
     const [answer, setAnswer] = useState('');
     const [error, setError] = useState('');
-    const [showMemeUrl, setShowMemeUrl] = useState<string | null>(null);
+    const [currentMemeDisplayUrl, setCurrentMemeDisplayUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const sessionRef = ref(db, `game_sessions/${sessionId}`);
         const unsubscribe = onValue(sessionRef, (snapshot) => {
             const data = snapshot.val();
             setGameState(data);
-            if (data?.lastFailureMemeUrl) {
-                setShowMemeUrl(data.lastFailureMemeUrl);
+            // Prioritize success memes over failure memes if both are somehow present
+            if (data?.lastSuccessMemeUrl) {
+                setCurrentMemeDisplayUrl(data.lastSuccessMemeUrl);
+            } else if (data?.lastFailureMemeUrl) {
+                setCurrentMemeDisplayUrl(data.lastFailureMemeUrl);
+            } else {
+                setCurrentMemeDisplayUrl(null);
             }
         });
         return () => unsubscribe();
     }, [sessionId]);
 
-    const { level, players, currentTypist, shownMemes } = gameState || {};
+    const { level, players, currentTypist, shownMemes, shownSuccessMemes } = gameState || {};
 
     const { sortedPlayerIds, myPlayerIndex, amITypist } = useMemo<{ sortedPlayerIds: string[]; myPlayerIndex: number; amITypist: boolean; }>(() => {
         if (!players || !uid) {
@@ -61,9 +66,8 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
         let availableMemes = FAIL_MEME_VIDEOS.filter(meme => !shownMemesForLevel.includes(meme));
 
         if (availableMemes.length === 0) {
-            // If all memes for this level have been shown, reset the list
             availableMemes = FAIL_MEME_VIDEOS;
-            shownMemesForLevel = [];
+            shownMemesForLevel = []; // Reset for this level if all were shown
         }
 
         const randomMeme = availableMemes[Math.floor(Math.random() * availableMemes.length)];
@@ -76,9 +80,12 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
     };
 
     const handleCloseMeme = () => {
-        setShowMemeUrl(null);
-        // Clear the meme URL in Firebase so it doesn't re-show on refresh
-        update(ref(db, `game_sessions/${sessionId}`), { lastFailureMemeUrl: null });
+        setCurrentMemeDisplayUrl(null);
+        // Clear both meme URLs in Firebase so they don't re-show on refresh
+        update(ref(db, `game_sessions/${sessionId}`), { 
+            lastFailureMemeUrl: null,
+            lastSuccessMemeUrl: null,
+        });
     };
 
     const advanceLevel = () => {
@@ -86,18 +93,36 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
         const nextTypistIndex = (level) % sortedPlayerIds.length;
         const nextTypistId = sortedPlayerIds[nextTypistIndex];
         
+        // --- Success Meme Logic ---
+        let shownSuccessMemesForLevel = shownSuccessMemes?.[level] || [];
+        let availableSuccessMemes = SUCCESS_MEME_VIDEOS.filter(meme => !shownSuccessMemesForLevel.includes(meme));
+
+        if (availableSuccessMemes.length === 0) {
+            availableSuccessMemes = SUCCESS_MEME_VIDEOS;
+            shownSuccessMemesForLevel = [];
+        }
+        const randomSuccessMeme = availableSuccessMemes[Math.floor(Math.random() * availableSuccessMemes.length)];
+        // --- End Success Meme Logic ---
+
         const updates: { [key: string]: any } = {
             level: nextLevel,
             score: (gameState.score || 0) + 100,
             lastLevelCompletedAt: Date.now(),
             currentTypist: nextTypistId,
-            // Clear any lingering error messages or memes from the previous level
+            // Clear any lingering error messages or failure memes from the previous level
             error: null,
-            lastFailureMemeUrl: null, 
+            lastFailureMemeUrl: null,
+            [`shownMemes/${level}`]: null, // Clear failure memes history for this level
+            // Set success meme
+            lastSuccessMemeUrl: randomSuccessMeme,
+            [`shownSuccessMemes/${level}`]: [...shownSuccessMemesForLevel, randomSuccessMeme],
         };
 
         if (level === LEVELS.length) {
             updates.completedAt = Date.now();
+            updates.currentTypist = null; // No typist needed if game is over
+            updates.lastSuccessMemeUrl = null; // Don't show success meme if game finished
+            updates[`shownSuccessMemes/${level}`] = null; // Clear success memes history for this level
         }
 
         update(ref(db, `game_sessions/${sessionId}`), updates);
@@ -126,7 +151,7 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
 
     return (
         <div>
-            {showMemeUrl && <MemePlayer videoUrl={showMemeUrl} onClose={handleCloseMeme} />}
+            {currentMemeDisplayUrl && <MemePlayer videoUrl={currentMemeDisplayUrl} onClose={handleCloseMeme} />}
             {gameState && <TeamStatsHUD gameState={gameState} />}
             <div className="text-center p-4 bg-gray-800 rounded-lg">
                 <h1 className="text-2xl font-bold mb-2">Level {level}</h1>

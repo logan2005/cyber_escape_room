@@ -1,3 +1,23 @@
+export const SUCCESS_MEME_VIDEOS = [
+    '/meme pass/meme_pass (1).mp4',
+    '/meme pass/meme_pass (2).mp4',
+    '/meme pass/meme_pass (3).mp4',
+    '/meme pass/meme_pass (4).mp4',
+    '/meme pass/meme_pass (5).mp4',
+    '/meme pass/meme_pass (6).mp4',
+    '/meme pass/meme_pass (7).mp4',
+    '/meme pass/meme_pass (8).mp4',
+    '/meme pass/meme_pass (9).mp4',
+    '/meme pass/meme_pass (10).mp4',
+    '/meme pass/meme_pass (11).mp4',
+    '/meme pass/meme_pass (12).mp4',
+    '/meme pass/meme_pass (13).mp4',
+    '/meme pass/meme_pass (14).mp4',
+    '/meme pass/meme_pass (15).mp4',
+    '/meme pass/meme_pass (16).mp4',
+    '/meme pass/meme_pass (17).mp4',
+];
+
 export const FAIL_MEME_VIDEOS = [
     '/meme_fail/meme_fail (1).mp4',
     '/meme_fail/meme_fail (2).mp4',
