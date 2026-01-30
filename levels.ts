@@ -6,39 +6,48 @@ export interface Level {
 
 export const LEVELS: Level[] = [
     {
-        question: "Assemble the message and find the keyword.",
+        question: "A popular front-end library asks: 'What is the answer to the ultimate question of life, the universe, and everything?'",
         clues: [
-            "The package is secure.",
-            "The code is 'phoenix'.",
-            "Await further instructions.",
+            "The library's logo is a blue atom.",
+            "It was created by Facebook.",
+            "The answer is a number from 'The Hitchhiker's Guide to the Galaxy'.",
         ],
-        answer: "phoenix",
+        answer: "42",
     },
     {
-        question: "Combine the parts of the coordinates and identify the location.",
+        question: "This git command is used to save your work, but what is its most common 'message'?",
         clues: [
-            "Latitude: 48.8584° N",
-            "Longitude: 2.2945° E",
-            "This famous landmark is in Paris.",
+            "It's not 'save' or 'update'.",
+            "You use it after 'git add .'.",
+            "The message is often a short, unhelpful description of the changes.",
         ],
-        answer: "Eiffel Tower",
+        answer: "wip", // Work in Progress - a classic lazy commit message
     },
     {
-        question: "The agent's name is an anagram of these three words.",
+        question: "In the world of cybersecurity, what type of 'hat' is a hacker who works to find vulnerabilities for the greater good?",
         clues: [
-            "A",
-            "CLEAN",
-            "PLATE",
+            "Their counterpart is a 'black hat'.",
+            "They are often hired by companies to test their own systems.",
+            "The color of their 'hat' is associated with purity and heroes.",
         ],
-        answer: "PETE ALAN C", // Just an example anagram
+        answer: "white",
     },
     {
-        question: "Follow the sequence to find the next number.",
+        question: "What three letters are famously used to escape from a popular, notoriously difficult-to-quit text editor?",
         clues: [
-            "The sequence begins with 2, 3, 5, 7...",
-            "...followed by 11, 13, 17...",
-            "...what is the next number?",
+            "The editor is called Vim.",
+            "You must be in normal mode first.",
+            "It's a colon, a letter, and an exclamation mark!",
         ],
-        answer: "19",
+        answer: ":q!",
+    },
+    {
+        question: "What is the term for a bug that unexpectedly becomes a feature?",
+        clues: [
+            "It's not a 'glitch' or a 'mistake'.",
+            "The original 'bug' in computing was a literal moth.",
+            "It's a common joke among developers, 'It's not a bug, it's a ___'.",
+        ],
+        answer: "feature",
     },
 ];

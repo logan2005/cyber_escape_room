@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import { LEVELS } from '../levels';
+import { FAIL_MEME_VIDEOS } from '../constants';
 import TeamStatsHUD from './TeamStatsHUD';
+import MemePlayer from './MemePlayer';
 
 interface GameProps {
     uid: string;
@@ -13,16 +15,21 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
     const [gameState, setGameState] = useState<any>(null);
     const [answer, setAnswer] = useState('');
     const [error, setError] = useState('');
+    const [showMemeUrl, setShowMemeUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const sessionRef = ref(db, `game_sessions/${sessionId}`);
         const unsubscribe = onValue(sessionRef, (snapshot) => {
-            setGameState(snapshot.val());
+            const data = snapshot.val();
+            setGameState(data);
+            if (data?.lastFailureMemeUrl) {
+                setShowMemeUrl(data.lastFailureMemeUrl);
+            }
         });
         return () => unsubscribe();
     }, [sessionId]);
 
-    const { level, players, currentTypist } = gameState || {};
+    const { level, players, currentTypist, shownMemes } = gameState || {};
 
     const { sortedPlayerIds, myPlayerIndex, amITypist } = useMemo<{ sortedPlayerIds: string[]; myPlayerIndex: number; amITypist: boolean; }>(() => {
         if (!players || !uid) {
@@ -44,8 +51,34 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
             setError('');
             setAnswer('');
         } else {
-            setError('Incorrect answer. Try again.');
+            setError('Incorrect answer. A penalty has been issued.');
+            triggerFailMeme();
         }
+    };
+
+    const triggerFailMeme = () => {
+        const shownMemesForLevel = shownMemes?.[level] || [];
+        let availableMemes = FAIL_MEME_VIDEOS.filter(meme => !shownMemesForLevel.includes(meme));
+
+        if (availableMemes.length === 0) {
+            // If all memes for this level have been shown, reset the list
+            availableMemes = FAIL_MEME_VIDEOS;
+            shownMemesForLevel = [];
+        }
+
+        const randomMeme = availableMemes[Math.floor(Math.random() * availableMemes.length)];
+        
+        const updates: { [key: string]: any } = {
+            lastFailureMemeUrl: randomMeme,
+            [`shownMemes/${level}`]: [...shownMemesForLevel, randomMeme],
+        };
+        update(ref(db, `game_sessions/${sessionId}`), updates);
+    };
+
+    const handleCloseMeme = () => {
+        setShowMemeUrl(null);
+        // Clear the meme URL in Firebase so it doesn't re-show on refresh
+        update(ref(db, `game_sessions/${sessionId}`), { lastFailureMemeUrl: null });
     };
 
     const advanceLevel = () => {
@@ -58,6 +91,9 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
             score: (gameState.score || 0) + 100,
             lastLevelCompletedAt: Date.now(),
             currentTypist: nextTypistId,
+            // Clear any lingering error messages or memes from the previous level
+            error: null,
+            lastFailureMemeUrl: null, 
         };
 
         if (level === LEVELS.length) {
@@ -90,6 +126,7 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
 
     return (
         <div>
+            {showMemeUrl && <MemePlayer videoUrl={showMemeUrl} onClose={handleCloseMeme} />}
             {gameState && <TeamStatsHUD gameState={gameState} />}
             <div className="text-center p-4 bg-gray-800 rounded-lg">
                 <h1 className="text-2xl font-bold mb-2">Level {level}</h1>
