@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import { LEVELS } from '../levels';
-import { GameComplete } from './GameUI'; // Assuming GameComplete is still needed
 
 interface GameProps {
     uid: string;
@@ -24,14 +23,14 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
 
     const { level, players, currentTypist } = gameState || {};
 
-    const { sortedPlayerIds, myPlayerIndex, amITypist } = useMemo(() => {
+    const { sortedPlayerIds, myPlayerIndex, amITypist } = useMemo<{ sortedPlayerIds: string[]; myPlayerIndex: number; amITypist: boolean; }>(() => {
         if (!players || !uid) {
             return { sortedPlayerIds: [], myPlayerIndex: -1, amITypist: false };
         }
         const sortedIds = Object.keys(players).sort();
         const myIndex = sortedIds.indexOf(uid);
         const isTypist = currentTypist === uid;
-        return { sortedPlayerIds, myPlayerIndex: myIndex, amITypist: isTypist };
+        return { sortedPlayerIds: sortedIds, myPlayerIndex: myIndex, amITypist: isTypist };
     }, [players, uid, currentTypist]);
 
     const currentLevelData = level > 0 && level <= LEVELS.length ? LEVELS[level - 1] : null;
@@ -50,7 +49,7 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
 
     const advanceLevel = () => {
         const nextLevel = level + 1;
-        const nextTypistIndex = nextLevel % sortedPlayerIds.length;
+        const nextTypistIndex = (level) % sortedPlayerIds.length; // Use level (which is 1-based for the first level) for the modulo
         const nextTypistId = sortedPlayerIds[nextTypistIndex];
         
         const updates: { [key: string]: any } = {
