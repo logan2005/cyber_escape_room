@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase';
 import { ref, onValue, query, orderByChild, equalTo, remove } from 'firebase/database';
+import { LEVELS } from '../../levels';
 
 interface GameSession {
     id: string;
@@ -62,7 +63,7 @@ const GameStats: React.FC = () => {
                             return (
                                 <tr key={session.id} className="border-t border-gray-700">
                                     <td className="p-3">{teamName}</td>
-                                    <td className="p-3">{session.level > TOTAL_LEVELS ? 'Finished' : session.level}</td>
+                                    <td className="p-3">{session.level > LEVELS.length ? 'Finished' : session.level}</td>
                                     <td className="p-3">{session.score || 0}</td>
                                     <td className="p-3">
                                         {session.lastLevelCompletedAt ? new Date(session.lastLevelCompletedAt).toLocaleTimeString() : 'N/A'}
@@ -84,8 +85,5 @@ const GameStats: React.FC = () => {
         </div>
     );
 };
-
-// We need to import TOTAL_LEVELS, let's just define it here for now.
-const TOTAL_LEVELS = 5;
 
 export default GameStats;
