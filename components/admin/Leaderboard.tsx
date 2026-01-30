@@ -52,46 +52,43 @@ const Leaderboard: React.FC = () => {
     };
 
     if (completedSessions.length === 0) {
-        return <p>No games have been completed yet.</p>;
+        return <p className="text-slate-400">No completed missions on record.</p>;
     }
 
     return (
-        <div className="mt-6">
-            <h2 className="text-2xl font-semibold mb-4">Leaderboard</h2>
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-gray-800 rounded-lg">
-                    <thead>
-                        <tr>
-                            <th className="p-3 text-left">Rank</th>
-                            <th className="p-3 text-left">Team</th>
-                            <th className="p-3 text-left">Score</th>
-                            <th className="p-3 text-left">Time Taken</th>
-                            <th className="p-3 text-left">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {completedSessions.map((session, index) => {
-                            const teamName = Object.values(session.players).map(p => p.name).join(', ');
-                            return (
-                                <tr key={session.id} className="border-t border-gray-700">
-                                    <td className="p-3 font-bold">{index + 1}</td>
-                                    <td className="p-3">{teamName}</td>
-                                    <td className="p-3">{session.score}</td>
-                                    <td className="p-3">{formatDuration(session.completedAt - session.createdAt)}</td>
-                                    <td className="p-3">
-                                        <button
-                                            onClick={() => handleDelete(session.id, teamName)}
-                                            className="bg-gray-600 hover:bg-red-800 text-white font-bold py-1 px-3 rounded"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
+        <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+                <thead className="border-b-2 border-cyan-400/30 text-left">
+                    <tr>
+                        <th className="p-2">Rank</th>
+                        <th className="p-2">Team</th>
+                        <th className="p-2">Score</th>
+                        <th className="p-2">Time</th>
+                        <th className="p-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {completedSessions.map((session, index) => {
+                        const teamName = Object.values(session.players).map(p => p.name).join(', ');
+                        return (
+                            <tr key={session.id} className="border-t border-slate-700 hover:bg-slate-800/50">
+                                <td className="p-2 font-bold text-cyan-300">#{index + 1}</td>
+                                <td className="p-2">{teamName}</td>
+                                <td className="p-2">{session.score}</td>
+                                <td className="p-2">{formatDuration(session.completedAt - session.createdAt)}</td>
+                                <td className="p-2">
+                                    <button
+                                        onClick={() => handleDelete(session.id, teamName)}
+                                        className="bg-red-500 hover:bg-red-400 text-white font-bold py-1 px-2 rounded text-xs transition-colors"
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 };

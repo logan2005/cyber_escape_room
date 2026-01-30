@@ -40,48 +40,45 @@ const GameStats: React.FC = () => {
     };
 
     if (activeSessions.length === 0) {
-        return <p>No active games at the moment.</p>;
+        return <p className="text-slate-400">No active missions.</p>;
     }
 
     return (
-        <div className="mt-6">
-            <h2 className="text-2xl font-semibold mb-4">Live Game Stats</h2>
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-gray-800 rounded-lg">
-                    <thead>
-                        <tr>
-                            <th className="p-3 text-left">Team</th>
-                            <th className="p-3 text-left">Current Level</th>
-                            <th className="p-3 text-left">Score</th>
-                            <th className="p-3 text-left">Last Progress</th>
-                            <th className="p-3 text-left">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {activeSessions.map(session => {
-                            const teamName = Object.values(session.players).map(p => p.name).join(', ');
-                            return (
-                                <tr key={session.id} className="border-t border-gray-700">
-                                    <td className="p-3">{teamName}</td>
-                                    <td className="p-3">{session.level > LEVELS.length ? 'Finished' : session.level}</td>
-                                    <td className="p-3">{session.score || 0}</td>
-                                    <td className="p-3">
-                                        {session.lastLevelCompletedAt ? new Date(session.lastLevelCompletedAt).toLocaleTimeString() : 'N/A'}
-                                    </td>
-                                    <td className="p-3">
-                                        <button 
-                                            onClick={() => handleTerminate(session.id, teamName)}
-                                            className="bg-red-600 hover:bg-red-800 text-white font-bold py-1 px-3 rounded"
-                                        >
-                                            Terminate
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
+        <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+                <thead className="border-b-2 border-cyan-400/30 text-left">
+                    <tr>
+                        <th className="p-2">Team</th>
+                        <th className="p-2">Level</th>
+                        <th className="p-2">Score</th>
+                        <th className="p-2">Last Progress</th>
+                        <th className="p-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {activeSessions.map(session => {
+                        const teamName = Object.values(session.players).map(p => p.name).join(', ');
+                        return (
+                            <tr key={session.id} className="border-t border-slate-700 hover:bg-slate-800/50">
+                                <td className="p-2">{teamName}</td>
+                                <td className="p-2">{session.level > LEVELS.length ? 'Finished' : session.level}</td>
+                                <td className="p-2">{session.score || 0}</td>
+                                <td className="p-2">
+                                    {session.lastLevelCompletedAt ? new Date(session.lastLevelCompletedAt).toLocaleTimeString() : 'N/A'}
+                                </td>
+                                <td className="p-2">
+                                    <button 
+                                        onClick={() => handleTerminate(session.id, teamName)}
+                                        className="bg-red-500 hover:bg-red-400 text-white font-bold py-1 px-2 rounded text-xs transition-colors"
+                                    >
+                                        Terminate
+                                    </button>
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 };

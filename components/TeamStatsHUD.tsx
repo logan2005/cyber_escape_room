@@ -9,13 +9,13 @@ const TeamStatsHUD: React.FC<TeamStatsHUDProps> = ({ gameState }) => {
 
     if (!isOpen) {
         return (
-            <div className="fixed top-4 right-4 z-50">
+            <div className="fixed top-2 right-2 md:top-4 md:right-4 z-50">
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded-full"
+                    className="font-orbitron bg-cyan-500/80 hover:bg-cyan-400 text-slate-900 font-bold py-1 px-3 rounded-md transition-all duration-300"
                     title="Show Team Stats"
                 >
-                    Stats
+                    HUD
                 </button>
             </div>
         );
@@ -24,21 +24,21 @@ const TeamStatsHUD: React.FC<TeamStatsHUDProps> = ({ gameState }) => {
     const teamNames = Object.values(gameState.players || {}).map((p: any) => p.name).join(', ');
 
     return (
-        <div className="fixed top-4 right-4 z-50 bg-gray-900 bg-opacity-80 backdrop-blur-sm text-white p-4 rounded-lg w-64 shadow-lg">
+        <div className="fixed top-2 right-2 md:top-4 md:right-4 z-40 bg-slate-900/70 border border-cyan-400/30 rounded-lg p-3 md:p-4 w-64 md:w-72 shadow-lg shadow-cyan-500/10 backdrop-blur-sm">
             <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-bold">Team Stats</h3>
+                <h3 className="font-orbitron text-lg font-bold text-cyan-300">MISSION STATS</h3>
                 <button
                     onClick={() => setIsOpen(false)}
-                    className="text-gray-400 hover:text-white"
+                    className="text-cyan-300 hover:text-white text-2xl"
                     title="Hide"
                 >
                     &times;
                 </button>
             </div>
-            <div>
-                <p><strong>Team:</strong> {teamNames}</p>
-                <p><strong>Level:</strong> {gameState.level}</p>
-                <p><strong>Score:</strong> {gameState.score || 0}</p>
+            <div className="text-sm">
+                <p className="text-slate-400">Team: <span className="font-bold text-slate-200">{teamNames}</span></p>
+                <p className="text-slate-400">Sequence: <span className="font-bold text-slate-200">{gameState.level}</span></p>
+                <p className="text-slate-400">Score: <span className="font-bold text-slate-200">{gameState.score || 0}</span></p>
             </div>
         </div>
     );

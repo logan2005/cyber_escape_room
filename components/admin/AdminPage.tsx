@@ -39,15 +39,13 @@ const PlayerControls: React.FC<{ waitingPlayers: WaitingPlayer[] }> = ({ waiting
                 teamPlayers[player.uid] = { uid: player.uid, name: player.name };
             });
 
-            // Randomly select the first typist for the new team
             const firstTypist = team[Math.floor(Math.random() * team.length)];
-
             const newGameSession = {
                 players: teamPlayers,
                 level: 1,
                 createdAt: Date.now(),
                 score: 0,
-                currentTypist: firstTypist.uid, // Set the initial typist
+                currentTypist: firstTypist.uid,
             };
 
             const newSessionId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -67,39 +65,44 @@ const PlayerControls: React.FC<{ waitingPlayers: WaitingPlayer[] }> = ({ waiting
     };
 
     return (
-        <div className="bg-gray-800 p-4 rounded-lg mb-6">
-            <h2 className="text-2xl font-semibold mb-4">Players ({waitingPlayers.length} waiting)</h2>
-            <div className="mb-4 min-h-[100px]">
-                {waitingPlayers.length > 0 ? (
-                    <ul className="list-disc pl-5">
-                        {waitingPlayers.map(player => <li key={player.uid}>{player.name}</li>)}
-                    </ul>
-                ) : (
-                    <p>No players are currently waiting in the lobby.</p>
-                )}
-            </div>
-            <div className="mt-6 border-t border-gray-700 pt-4">
-                <h2 className="text-xl font-semibold mb-2">Game Controls</h2>
-                <label htmlFor="team-size" className="mr-2">Team Size:</label>
-                <input
-                    type="number"
-                    id="team-size"
-                    value={teamSize}
-                    onChange={(e) => setTeamSize(Math.max(2, parseInt(e.target.value, 10)))}
-                    className="p-1 border rounded bg-gray-900 w-20"
-                />
-                <button
-                    onClick={handleStartGame}
-                    disabled={waitingPlayers.length < teamSize}
-                    className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded ml-4 disabled:bg-gray-500"
-                >
-                    Start Game & Form Teams
-                </button>
-                {waitingPlayers.length > 0 && waitingPlayers.length < teamSize &&
-                    <p className="text-sm text-yellow-400 mt-2">
-                        You need at least {teamSize} players in the lobby to start.
-                    </p>
-                }
+        <div className="bg-slate-900/70 border border-cyan-400/30 rounded-lg p-4 md:p-6 mb-6 shadow-lg shadow-cyan-500/10 backdrop-blur-sm">
+            <h2 className="font-orbitron text-2xl font-semibold mb-4 text-cyan-300">OPERATOR CONTROLS</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 className="text-xl font-semibold mb-2">Waiting Agents ({waitingPlayers.length})</h3>
+                    <div className="bg-slate-800/50 p-3 rounded-md min-h-[120px] text-slate-300">
+                        {waitingPlayers.length > 0 ? (
+                            <ul className="space-y-1">
+                                {waitingPlayers.map(player => <li key={player.uid}>{player.name}</li>)}
+                            </ul>
+                        ) : (
+                            <p>Staging area is empty. Awaiting new agents.</p>
+                        )}
+                    </div>
+                </div>
+                <div className="border-t border-slate-700 md:border-t-0 md:border-l md:pl-6">
+                    <h3 className="text-xl font-semibold mb-2">Mission Parameters</h3>
+                    <label htmlFor="team-size" className="mr-2 text-slate-300">Squad Size:</label>
+                    <input
+                        type="number"
+                        id="team-size"
+                        value={teamSize}
+                        onChange={(e) => setTeamSize(Math.max(2, parseInt(e.target.value, 10)))}
+                        className="p-2 bg-slate-800 border border-slate-700 rounded-md w-24 text-center text-cyan-300 focus:ring-2 focus:ring-cyan-400 focus:outline-none focus:border-cyan-400"
+                    />
+                    <button
+                        onClick={handleStartGame}
+                        disabled={waitingPlayers.length < teamSize}
+                        className="font-orbitron bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold py-2 px-4 rounded-md ml-4 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50 disabled:bg-slate-600 disabled:shadow-none"
+                    >
+                        DEPLOY TEAMS
+                    </button>
+                    {waitingPlayers.length > 0 && waitingPlayers.length < teamSize &&
+                        <p className="text-sm text-yellow-400 mt-2">
+                            Insufficient agents for a squad of {teamSize}.
+                        </p>
+                    }
+                </div>
             </div>
         </div>
     );
@@ -120,17 +123,17 @@ const AdminPage: React.FC = () => {
     }, []);
     
     return (
-        <div className="w-full">
-            <h1 className="text-3xl font-bold mb-6 text-center">Admin Dashboard</h1>
+        <div className="w-full max-w-7xl mx-auto">
+            <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-6 text-center text-cyan-300">ADMINISTRATOR DASHBOARD</h1>
             <PlayerControls waitingPlayers={waitingPlayers} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                    <h2 className="text-2xl font-bold mb-4">Active Teams</h2>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="bg-slate-900/70 border border-cyan-400/30 rounded-lg p-4 md:p-6 shadow-lg shadow-cyan-500/10 backdrop-blur-sm">
+                    <h2 className="font-orbitron text-2xl font-bold mb-4 text-cyan-300">ACTIVE MISSIONS</h2>
                     <GameStats />
                 </div>
-                <div>
-                    <h2 className="text-2xl font-bold mb-4">Leaderboard</h2>
+                <div className="bg-slate-900/70 border border-cyan-400/30 rounded-lg p-4 md:p-6 shadow-lg shadow-cyan-500/10 backdrop-blur-sm">
+                    <h2 className="font-orbitron text-2xl font-bold mb-4 text-cyan-300">AGENT RANKINGS</h2>
                     <Leaderboard />
                 </div>
             </div>

@@ -15,14 +15,14 @@ const PlayerLobby: React.FC<PlayerLobbyProps> = ({ uid }) => {
 
     const handleJoinLobby = () => {
         if (!playerName.trim()) {
-            setError('Please enter a name.');
+            setError('Please enter your callsign.');
             return;
         }
         setError('');
         const playerRef = ref(db, `lobby/waiting_players/${uid}`);
         set(playerRef, { name: playerName, joinedAt: Date.now() })
             .then(() => setView('waiting'))
-            .catch(() => setError('Failed to join the lobby. Please try again.'));
+            .catch(() => setError('Connection to host lost. Please try again.'));
     };
 
     useEffect(() => {
@@ -45,33 +45,36 @@ const PlayerLobby: React.FC<PlayerLobbyProps> = ({ uid }) => {
         return <Game uid={uid} sessionId={gameSessionId} />;
     }
 
+    const containerStyles = "text-center bg-slate-900 bg-opacity-70 border border-cyan-400/30 rounded-lg p-6 md:p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur-sm";
+
     if (view === 'waiting') {
         return (
-            <div className="text-center">
-                <h1 className="text-3xl font-bold mb-4">You are in the lobby!</h1>
-                <p className="text-xl animate-pulse">Waiting for the admin to start the game...</p>
+            <div className={containerStyles}>
+                <h1 className="font-orbitron text-2xl md:text-3xl font-bold mb-4 text-cyan-300">AWAITING DEPLOYMENT</h1>
+                <p className="text-lg text-slate-300 animate-pulse">Connection established. Waiting for mission start from Control...</p>
             </div>
         );
     }
 
     // Default view is 'joining'
     return (
-        <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Join the Cyber Escape Room</h1>
+        <div className={containerStyles}>
+            <h1 className="font-orbitron text-2xl md:text-3xl font-bold mb-2 text-cyan-300">AGENT LOGIN</h1>
+            <p className="text-slate-400 mb-6">Identify yourself to join the operation.</p>
             <input
                 type="text"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="Enter your agent name"
-                className="p-2 border rounded w-full max-w-xs mb-4"
+                placeholder="Enter your callsign"
+                className="p-3 bg-slate-800 border border-slate-700 rounded-md w-full max-w-sm mb-4 text-center text-lg text-cyan-300 focus:ring-2 focus:ring-cyan-400 focus:outline-none focus:border-cyan-400"
             />
             <button
                 onClick={handleJoinLobby}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors w-full max-w-xs"
+                className="font-orbitron bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold py-3 px-6 rounded-md w-full max-w-sm text-lg transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50"
             >
-                Join Lobby
+                CONNECT
             </button>
-            {error && <p className="text-red-500 mt-2">{error}</p>}
+            {error && <p className="text-red-400 mt-4">{error}</p>}
         </div>
     );
 };

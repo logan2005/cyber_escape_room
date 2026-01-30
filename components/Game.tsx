@@ -11,10 +11,15 @@ interface GameProps {
     sessionId: string;
 }
 
+interface DisplayMessage {
+    text: string;
+    type: 'success' | 'failure';
+}
+
 const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
     const [gameState, setGameState] = useState<any>(null);
     const [answer, setAnswer] = useState('');
-    const [error, setError] = useState('');
+    const [currentMessage, setCurrentMessage] = useState<DisplayMessage | null>(null);
     const [currentMemeDisplayUrl, setCurrentMemeDisplayUrl] = useState<string | null>(null);
 
     useEffect(() => {
@@ -22,7 +27,8 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
         const unsubscribe = onValue(sessionRef, (snapshot) => {
             const data = snapshot.val();
             setGameState(data);
-            // Prioritize success memes over failure memes if both are somehow present
+
+            // Handle meme display
             if (data?.lastSuccessMemeUrl) {
                 setCurrentMemeDisplayUrl(data.lastSuccessMemeUrl);
             } else if (data?.lastFailureMemeUrl) {
@@ -30,9 +36,23 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
             } else {
                 setCurrentMemeDisplayUrl(null);
             }
+
+            // Handle text message display
+            // Only show text message if no meme is active, otherwise meme takes precedence
+            if (currentMemeDisplayUrl === null) { 
+                if (data?.lastSuccessText) {
+                    setCurrentMessage({ text: data.lastSuccessText, type: 'success' });
+                } else if (data?.lastFailureText) {
+                    setCurrentMessage({ text: data.lastFailureText, type: 'failure' });
+                } else {
+                    setCurrentMessage(null);
+                }
+            } else {
+                setCurrentMessage(null); // Hide text message if a meme is active
+            }
         });
         return () => unsubscribe();
-    }, [sessionId]);
+    }, [sessionId, currentMemeDisplayUrl]); // currentMemeDisplayUrl added to dependencies
 
     const { level, players, currentTypist, shownMemes, shownSuccessMemes } = gameState || {};
 
@@ -50,13 +70,10 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
 
     const handleSubmitAnswer = () => {
         if (!currentLevelData) return;
-
         if (answer.trim().toLowerCase() === currentLevelData.answer.toLowerCase()) {
             advanceLevel();
-            setError('');
             setAnswer('');
         } else {
-            setError('Incorrect answer. A penalty has been issued.');
             triggerFailMeme();
         }
     };
@@ -67,24 +84,28 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
 
         if (availableMemes.length === 0) {
             availableMemes = FAIL_MEME_VIDEOS;
-            shownMemesForLevel = []; // Reset for this level if all were shown
+            shownMemesForLevel = [];
         }
 
         const randomMeme = availableMemes[Math.floor(Math.random() * availableMemes.length)];
         
-        const updates: { [key: string]: any } = {
-            lastFailureMemeUrl: randomMeme,
+        const updates = { 
+            lastFailureMemeUrl: randomMeme, 
             [`shownMemes/${level}`]: [...shownMemesForLevel, randomMeme],
+            lastFailureText: 'ACCESS DENIED. Anomaly detected. Re-evaluate strategy.', // Synchronize failure text
+            lastSuccessText: null, // Clear any previous success text
         };
         update(ref(db, `game_sessions/${sessionId}`), updates);
     };
 
     const handleCloseMeme = () => {
         setCurrentMemeDisplayUrl(null);
-        // Clear both meme URLs in Firebase so they don't re-show on refresh
+        // Clear both meme URLs and text messages in Firebase
         update(ref(db, `game_sessions/${sessionId}`), { 
             lastFailureMemeUrl: null,
             lastSuccessMemeUrl: null,
+            lastFailureText: null,
+            lastSuccessText: null,
         });
     };
 
@@ -93,77 +114,81 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
         const nextTypistIndex = (level) % sortedPlayerIds.length;
         const nextTypistId = sortedPlayerIds[nextTypistIndex];
         
-        // --- Success Meme Logic ---
         let shownSuccessMemesForLevel = shownSuccessMemes?.[level] || [];
         let availableSuccessMemes = SUCCESS_MEME_VIDEOS.filter(meme => !shownSuccessMemesForLevel.includes(meme));
-
         if (availableSuccessMemes.length === 0) {
             availableSuccessMemes = SUCCESS_MEME_VIDEOS;
             shownSuccessMemesForLevel = [];
         }
         const randomSuccessMeme = availableSuccessMemes[Math.floor(Math.random() * availableSuccessMemes.length)];
-        // --- End Success Meme Logic ---
 
         const updates: { [key: string]: any } = {
             level: nextLevel,
             score: (gameState.score || 0) + 100,
             lastLevelCompletedAt: Date.now(),
             currentTypist: nextTypistId,
-            // Clear any lingering error messages or failure memes from the previous level
-            error: null,
+            // Clear any lingering failure states from the previous level
             lastFailureMemeUrl: null,
+            lastFailureText: null,
             [`shownMemes/${level}`]: null, // Clear failure memes history for this level
-            // Set success meme
+            // Set success meme and text
             lastSuccessMemeUrl: randomSuccessMeme,
             [`shownSuccessMemes/${level}`]: [...shownSuccessMemesForLevel, randomSuccessMeme],
+            lastSuccessText: 'SEQUENCE DECRYPTED! Advancing to next phase.', // Synchronize success text
         };
 
         if (level === LEVELS.length) {
             updates.completedAt = Date.now();
-            updates.currentTypist = null; // No typist needed if game is over
-            updates.lastSuccessMemeUrl = null; // Don't show success meme if game finished
-            updates[`shownSuccessMemes/${level}`] = null; // Clear success memes history for this level
+            updates.currentTypist = null;
+            updates.lastSuccessMemeUrl = null;
+            updates[`shownSuccessMemes/${level}`] = null;
+            updates.lastSuccessText = 'MISSION OBJECTIVE ACHIEVED! All sequences decrypted.';
         }
 
         update(ref(db, `game_sessions/${sessionId}`), updates);
     };
 
-    if (!gameState) {
-        return <p className="text-center">Loading game state...</p>;
-    }
+    const renderContent = () => {
+        if (!gameState) {
+            return <p className="text-center animate-pulse text-cyan-300">Establishing secure connection to game server...</p>;
+        }
     
-    if (level > LEVELS.length) {
-        const teamNames = Object.values(players).map((p: any) => p.name).join(', ');
+        if (level > LEVELS.length) {
+            const teamNames = Object.values(players).map((p: any) => p.name).join(', ');
+            return (
+                <div className="text-center">
+                    <h1 className="font-orbitron text-3xl md:text-4xl text-cyan-300 mb-4">MISSION COMPLETE</h1>
+                    <p className="text-lg text-slate-300">Team <span className="font-bold text-white">{teamNames}</span> has successfully infiltrated the system.</p>
+                    <p className="text-2xl text-white mt-4">Final Score: <span className="font-bold text-cyan-300">{gameState.score}</span></p>
+                </div>
+            );
+        }
+        
+        if (!currentLevelData) {
+            return <p className="text-center animate-pulse text-cyan-300">Decrypting level data...</p>;
+        }
+
+        const myClue = currentLevelData.clues[myPlayerIndex % currentLevelData.clues.length];
+        
+        const messageColor = currentMessage?.type === 'success' ? 'text-green-400' : 'text-red-400';
+
         return (
-            <div className="text-center">
-                <h1 className="text-3xl">Game Complete!</h1>
-                <p>Team: {teamNames}</p>
-                <p>Final Score: {gameState.score}</p>
-            </div>
-        );
-    }
-    
-    if (!currentLevelData) {
-        return <p className="text-center">Waiting for level data...</p>;
-    }
+            <>
+                {currentMessage && ( // Always display text message, it will be above meme if meme is active
+                    <p className={`font-orbitron text-lg font-bold mb-4 ${messageColor}`}>
+                        {currentMessage.text}
+                    </p>
+                )}
+                <h1 className="font-orbitron text-2xl md:text-3xl text-cyan-300 mb-2">SEQUENCE {level}</h1>
+                <p className="text-lg text-slate-300 mb-6">{currentLevelData.question}</p>
 
-    const myClue = currentLevelData.clues[myPlayerIndex % currentLevelData.clues.length];
-
-    return (
-        <div>
-            {currentMemeDisplayUrl && <MemePlayer videoUrl={currentMemeDisplayUrl} onClose={handleCloseMeme} />}
-            {gameState && <TeamStatsHUD gameState={gameState} />}
-            <div className="text-center p-4 bg-gray-800 rounded-lg">
-                <h1 className="text-2xl font-bold mb-2">Level {level}</h1>
-                <p className="text-lg mb-4">{currentLevelData.question}</p>
-
-                <div className="bg-gray-900 p-4 rounded-lg my-4">
-                    <h2 className="text-xl font-semibold mb-2">Your Clue:</h2>
-                    <p className="text-2xl font-mono animate-pulse">{myClue}</p>
+                <div className="bg-slate-900 border border-cyan-400/30 p-4 rounded-lg my-4">
+                    <h2 className="font-orbitron text-lg text-cyan-400 mb-2">DATA FRAGMENT // AGENT_{uid.substring(0,4)}</h2>
+                    <p className="text-2xl font-mono text-white animate-pulse">{myClue}</p>
                 </div>
 
-                <div className="my-4">
-                    <p>The current typist is: <span className="font-bold">{players[currentTypist]?.name || '...'}</span></p>
+                <div className="my-6">
+                    <p className="text-slate-300">Designated typist for this sequence: <span className="font-bold text-white">{players[currentTypist]?.name || '...'}</span></p>
                 </div>
                 
                 {amITypist && (
@@ -173,18 +198,27 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
                             value={answer}
                             onChange={(e) => setAnswer(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSubmitAnswer()}
-                            placeholder="Enter the team's answer"
-                            className="p-2 border rounded bg-gray-900 w-full max-w-xs mb-2"
+                            placeholder="INPUT DECRYPTION KEY"
+                            className="font-orbitron p-3 bg-slate-800 border border-slate-700 rounded-md w-full max-w-sm mb-2 text-center text-lg text-cyan-300 focus:ring-2 focus:ring-cyan-400 focus:outline-none focus:border-cyan-400"
                         />
                         <button
                             onClick={handleSubmitAnswer}
-                            className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded w-full max-w-xs"
+                            className="font-orbitron bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold py-3 px-6 rounded-md w-full max-w-sm text-lg transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50"
                         >
-                            Submit Answer
+                            EXECUTE
                         </button>
-                        {error && <p className="text-red-500 mt-2">{error}</p>}
                     </div>
                 )}
+            </>
+        );
+    };
+
+    return (
+        <div>
+            {currentMemeDisplayUrl && <MemePlayer videoUrl={currentMemeDisplayUrl} onClose={handleCloseMeme} />}
+            {gameState && <TeamStatsHUD gameState={gameState} />}
+            <div className="bg-slate-900/70 border border-cyan-400/30 rounded-lg p-6 md:p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur-sm">
+                {renderContent()}
             </div>
         </div>
     );
