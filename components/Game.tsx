@@ -23,7 +23,16 @@ const AudioPlayer: React.FC<{ src: string; onClick: () => void }> = ({ src, onCl
         title="Knock, and it shall be opened..."
     >
         <h2 className="font-orbitron text-lg text-cyan-400 mb-2">AUDITORY CLUE // LISTEN CAREFULLY</h2>
-        <audio controls loop autoPlay src={src} className="w-full" />
+        <audio controls loop src={src} className="w-full" />
+    </div>
+);
+
+const VideoPlayer: React.FC<{ src: string }> = ({ src }) => (
+    <div
+        className="bg-slate-900 border border-cyan-400/30 p-4 rounded-lg my-4"
+    >
+        <h2 className="font-orbitron text-lg text-cyan-400 mb-2">VIDEO EVIDENCE // ANALYZE CAREFULLY</h2>
+        <video controls src={src} className="w-full rounded" />
     </div>
 );
 
@@ -65,17 +74,41 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
 
     const { level, players, currentTypist, shownMemes, shownSuccessMemes } = gameState || {};
 
-    const { sortedPlayerIds, myPlayerIndex, amITypist } = useMemo<{ sortedPlayerIds: string[]; myPlayerIndex: number; amITypist: boolean; }>(() => {
-        if (!players || !uid) {
-            return { sortedPlayerIds: [], myPlayerIndex: -1, amITypist: false };
-        }
-        const sortedIds = Object.keys(players).sort();
-        const myIndex = sortedIds.indexOf(uid);
-        const isTypist = currentTypist === uid;
-        return { sortedPlayerIds: sortedIds, myPlayerIndex: myIndex, amITypist: isTypist };
-    }, [players, uid, currentTypist]);
-
     const currentLevelData = level > 0 && level <= LEVELS.length ? LEVELS[level - 1] : null;
+
+    const { amITypist, myClue, sortedPlayerIds } = useMemo<{ amITypist: boolean; myClue: string; sortedPlayerIds: string[] }>(() => {
+        if (!players || !uid || !currentLevelData) {
+            return { amITypist: false, myClue: "Awaiting data...", sortedPlayerIds: [] };
+        }
+
+        const sortedIds = Object.keys(players).sort();
+        const isTypist = currentTypist === uid;
+
+        let clue = "No clue assigned for this sequence.";
+        if (isTypist) {
+            clue = "Your mission is to input the final decryption key.";
+        } else {
+            const nonTypists = sortedIds.filter(id => id !== currentTypist);
+            if (nonTypists.length === 0) return { amITypist: false, myClue: "Error: No non-typists found.", sortedPlayerIds: sortedIds };
+
+            const myIndexInNonTypists = nonTypists.indexOf(uid);
+            
+            if (myIndexInNonTypists !== -1) {
+                const assignedClues = [];
+                for (let i = 0; i < currentLevelData.clues.length; i++) {
+                    if (i % nonTypists.length === myIndexInNonTypists) {
+                        assignedClues.push(currentLevelData.clues[i]);
+                    }
+                }
+                if (assignedClues.length > 0) {
+                    clue = assignedClues.join(' \n\n ');
+                }
+            }
+        }
+        
+        return { amITypist: isTypist, myClue: clue, sortedPlayerIds: sortedIds };
+    }, [players, uid, currentTypist, currentLevelData]);
+
 
     const handleSubmitAnswer = () => {
         if (!currentLevelData) return;
@@ -154,7 +187,7 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
     };
 
     const handleAudioClick = () => {
-        console.log("Audio player clicked! Waiting for user clarification on what should happen.");
+        console.log("Audio player clicked!");
     };
 
     const renderContent = () => {
@@ -176,8 +209,6 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
         if (!currentLevelData) {
             return <p className="text-center animate-pulse text-cyan-300">Decrypting level data...</p>;
         }
-
-        const myClue = currentLevelData.clues[myPlayerIndex % currentLevelData.clues.length];
         
         const messageColor = currentMessage?.type === 'success' ? 'text-green-400' : 'text-red-400';
 
@@ -191,13 +222,17 @@ const Game: React.FC<GameProps> = ({ uid, sessionId }) => {
                 <h1 className="font-orbitron text-2xl md:text-3xl text-cyan-300 mb-2">SEQUENCE {level}</h1>
                 <p className="text-lg text-slate-300 mb-6">{currentLevelData.question}</p>
 
-                {level === 1 && currentLevelData.audioClue && (
+                {currentLevelData.audioClue && (
                     <AudioPlayer src={currentLevelData.audioClue} onClick={handleAudioClick} />
+                )}
+
+                {currentLevelData.videoClue && (
+                    <VideoPlayer src={currentLevelData.videoClue} />
                 )}
 
                 <div className="bg-slate-900 border border-cyan-400/30 p-4 rounded-lg my-4">
                     <h2 className="font-orbitron text-lg text-cyan-400 mb-2">DATA FRAGMENT // AGENT_{uid.substring(0,4)}</h2>
-                    <p className="text-2xl font-mono text-white animate-pulse">{myClue || "No text clue assigned for this sequence."}</p>
+                    <p className="text-2xl font-mono text-white animate-pulse">{myClue}</p>
                 </div>
 
                 <div className="my-6">

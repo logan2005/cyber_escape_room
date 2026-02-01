@@ -3,6 +3,7 @@ export interface Level {
     clues: string[]; // Each string in the array is a piece of the clue for one player
     answer: string;
     audioClue?: string; // Optional audio clue
+    videoClue?: string; // Optional video clue
 }
 
 export const LEVELS: Level[] = [
@@ -14,6 +15,24 @@ export const LEVELS: Level[] = [
         ],
         answer: "Naan Dhan Answer",
         audioClue: "/audio/vittupona_loop.mp3",
+    },
+    {
+        question: "Decode the binary message to reveal the next phrase.",
+        clues: [
+            "Decoding therinja nee tha Pista",
+            "Computer Pesum Mozhi \"01010011 01101001 01110010 01100001 01110000 01110000 01100001 01101110 01100001 00100000 01000001 01100001 01101100 00100000 01001110 01100101 01100101\"",
+        ],
+        answer: "Sirappana Aal Nee",
+        audioClue: "/audio/poojiyam-ondrodu_loop.mp3",
+    },
+    {
+        question: "Watch the video evidence. Find the numbers and the QR Code.",
+        clues: [
+            "Numbers Mukkiyam Bigiluhh",
+            "QR Code irukka nu endrichu paaru",
+        ],
+        answer: "Valthukkal Valthukkal",
+        videoClue: "/video/kakki_sattai.mp4",
     },
     {
         question: "A popular front-end library asks: 'What is the answer to the ultimate question of life, the universe, and everything?'",
