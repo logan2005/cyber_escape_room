@@ -4,6 +4,8 @@ export interface Level {
     answer: string;
     audioClue?: string; // Optional audio clue
     videoClue?: string; // Optional video clue
+    timedClue?: { text: string; delay: number; }; // Optional timed clue
+    secretEncodings?: string[]; // Optional array of secret texts
 }
 
 export const LEVELS: Level[] = [
@@ -15,6 +17,7 @@ export const LEVELS: Level[] = [
         ],
         answer: "Naan Dhan Answer",
         audioClue: "/audio/vittupona_loop.mp3",
+        secretEncodings: ["Base64"],
     },
     {
         question: "Decode the binary message to reveal the next phrase.",
@@ -24,6 +27,7 @@ export const LEVELS: Level[] = [
         ],
         answer: "Sirappana Aal Nee",
         audioClue: "/audio/poojiyam-ondrodu_loop.mp3",
+        secretEncodings: ["binary"],
     },
     {
         question: "Watch the video evidence. Find the numbers and the QR Code.",
@@ -33,6 +37,25 @@ export const LEVELS: Level[] = [
         ],
         answer: "Valthukkal Valthukkal",
         videoClue: "/video/kakki_sattai.mp4",
+        secretEncodings: ["Hexa Decimal"],
+    },
+    {
+        question: "Observe the external display (projector). Locate the hidden clues and uncover the truth.",
+        clues: [
+            "Adho paaru Dhoorathula Dolakpur Mala",
+            "Suthi Paaru Answer 100",
+            "Kannuku Munnaddi Theriyurathu ellame unmai illa Beti.",
+        ],
+        answer: "Avlo ariviu iruka super !",
+        secretEncodings: ["ROT13"],
+    },
+    {
+        question: "Samandhame illadha oru nerathula Samandhame illadhha edduthula, Samandhame illadha orunthan irundhan. Andha samandhame illadha oruthaan andha samandhame illadha eduthula samandhame illadha oru vishaayam thuni ku pinnadi irundhadha paathanam",
+        clues: [
+            "Andha thuni ku pinnadi ennava irukkum",
+        ],
+        answer: "Nee Dham uh ley Diveruhh",
+        timedClue: { text: "Curtain = thuni", delay: 15 },
     },
     {
         question: "A popular front-end library asks: 'What is the answer to the ultimate question of life, the universe, and everything?'",
