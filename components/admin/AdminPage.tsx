@@ -3,12 +3,14 @@ import { db } from '../../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import GameStats from './GameStats';
 import Leaderboard from './Leaderboard';
+import GlobalPowerupControls from './GlobalPowerupControls';
 
 interface WaitingPlayer {
     uid: string;
     name: string;
     joinedAt: number;
 }
+
 
 // Helper function to shuffle an array
 const shuffleArray = (array: any[]) => {
@@ -23,14 +25,13 @@ const PlayerControls: React.FC<{ waitingPlayers: WaitingPlayer[] }> = ({ waiting
     const [teamSize, setTeamSize] = useState(3);
 
     const handleStartGame = () => {
-        if (waitingPlayers.length < teamSize) {
-            alert("Not enough players to form a team.");
+        if (waitingPlayers.length === 0) {
+            alert("No players in the lobby.");
             return;
         }
 
         const shuffledPlayers = shuffleArray([...waitingPlayers]);
         const updates: { [key: string]: any } = {};
-        let playersToKeepInLobby: { [key: string]: any } = {};
         
         while (shuffledPlayers.length >= teamSize) {
             const team = shuffledPlayers.splice(0, teamSize);
@@ -48,11 +49,16 @@ const PlayerControls: React.FC<{ waitingPlayers: WaitingPlayer[] }> = ({ waiting
                 currentTypist: firstTypist.uid,
                 secretPayloadState: {
                     visibleTo: firstTypist.uid,
-                    position: {
-                        top: '50%',
-                        left: '50%',
-                    },
+                    position: { top: '50%', left: '50%' },
                 },
+                powerups: {
+                    slots: [null, null, null],
+                    activeDefense: null,
+                },
+                powerupBubble: null,
+                activeAttack: null,
+                currentView: 'team_ready',
+                readyPlayers: {},
             };
 
             const newSessionId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -60,13 +66,35 @@ const PlayerControls: React.FC<{ waitingPlayers: WaitingPlayer[] }> = ({ waiting
         }
 
         shuffledPlayers.forEach(player => {
-            playersToKeepInLobby[player.uid] = {
-                name: player.name,
-                joinedAt: player.joinedAt,
+            const teamPlayers: { [key: string]: { uid: string, name: string } } = {
+                [player.uid]: { uid: player.uid, name: player.name }
             };
+
+            const newGameSession = {
+                players: teamPlayers,
+                level: 1,
+                createdAt: Date.now(),
+                score: 0,
+                currentTypist: player.uid,
+                secretPayloadState: {
+                    visibleTo: player.uid,
+                    position: { top: '50%', left: '50%' },
+                },
+                powerups: {
+                    slots: [null, null, null],
+                    activeDefense: null,
+                },
+                powerupBubble: null,
+                activeAttack: null,
+                currentView: 'team_ready',
+                readyPlayers: {},
+            };
+
+            const newSessionId = `${Date.now()}-${player.uid.substring(0, 5)}`;
+            updates[`/game_sessions/${newSessionId}`] = newGameSession;
         });
         
-        updates['/lobby/waiting_players'] = playersToKeepInLobby;
+        updates['/lobby/waiting_players'] = null;
 
         update(ref(db), updates);
     };
@@ -96,16 +124,15 @@ const PlayerControls: React.FC<{ waitingPlayers: WaitingPlayer[] }> = ({ waiting
                                 type="number"
                                 id="team-size"
                                 value={teamSize}
-                                onChange={(e) => setTeamSize(Math.max(2, parseInt(e.target.value, 10)))}
+                                onChange={(e) => setTeamSize(Math.max(1, parseInt(e.target.value, 10)))}
                                 className="p-2 bg-slate-800 border border-slate-700 rounded-md w-24 text-center text-cyan-300 focus:ring-2 focus:ring-cyan-400 focus:outline-none focus:border-cyan-400"
                             />
                         </div>
                         <button
                             onClick={handleStartGame}
-                            disabled={waitingPlayers.length < teamSize}
                             className="font-orbitron w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold py-2 px-4 rounded-md transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50 disabled:bg-slate-600 disabled:shadow-none"
                         >
-                            DEPLOY TEAMS
+                            ASSEMBLE TEAMS
                         </button>
                     </div>
                     {waitingPlayers.length > 0 && waitingPlayers.length < teamSize &&
@@ -137,6 +164,7 @@ const AdminPage: React.FC = () => {
         <div className="w-full max-w-7xl mx-auto p-2">
             <h1 className="font-orbitron text-2xl md:text-4xl font-bold mb-6 text-center text-cyan-300">ADMINISTRATOR DASHBOARD</h1>
             <PlayerControls waitingPlayers={waitingPlayers} />
+            <GlobalPowerupControls />
             
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div className="bg-slate-900/70 border border-cyan-400/30 rounded-lg p-3 md:p-6 shadow-lg shadow-cyan-500/10 backdrop-blur-sm">

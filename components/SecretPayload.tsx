@@ -8,7 +8,7 @@ interface SecretPayloadProps {
 const SecretPayload: React.FC<SecretPayloadProps> = ({ text, position }) => {
     return (
         <div
-            className="fixed z-50 bg-red-500/80 text-white font-mono p-2 rounded-md shadow-lg animate-pulse backdrop-blur-sm"
+            className="fixed z-[60] bg-red-500/80 text-white font-mono p-2 rounded-md shadow-lg animate-pulse backdrop-blur-sm"
             style={{ 
                 top: position.top, 
                 left: position.left,

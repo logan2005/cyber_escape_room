@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { ref, set, onValue, query, orderByChild, equalTo } from 'firebase/database';
 import Game from './Game';
+import TeamReadyScreen from './TeamReadyScreen';
+import GamePrelude from './GamePrelude';
+import GameEndScreen from './GameEndScreen';
 
 interface PlayerLobbyProps {
     uid: string;
 }
 
 const PlayerLobby: React.FC<PlayerLobbyProps> = ({ uid }) => {
-    const [view, setView] = useState<'joining' | 'waiting' | 'in_game'>('joining');
+    const [view, setView] = useState<'joining' | 'waiting' | 'team_ready' | 'prelude' | 'in_game' | 'game_end'>('joining');
     const [playerName, setPlayerName] = useState('');
     const [error, setError] = useState('');
     const [gameSessionId, setGameSessionId] = useState<string | null>(null);
@@ -33,16 +36,48 @@ const PlayerLobby: React.FC<PlayerLobbyProps> = ({ uid }) => {
             if (snapshot.exists()) {
                 const sessionsData = snapshot.val();
                 const sessionId = Object.keys(sessionsData)[0];
+                const session = sessionsData[sessionId];
+                
                 setGameSessionId(sessionId);
-                setView('in_game'); // Go directly to the game
+                
+                // Only change view based on game state if we're not already in the game or game end
+                // This prevents the prelude/team screens from showing during level transitions
+                if (view !== 'in_game' && view !== 'game_end') {
+                    if (session.currentView === 'playing') {
+                        setView('in_game');
+                    } else if (session.currentView === 'prelude') {
+                        setView('prelude');
+                    } else if (session.currentView === 'game_end') {
+                        setView('game_end');
+                    } else {
+                        setView('team_ready');
+                    }
+                }
+                
+                // Special handling: if game is completed, show end screen
+                if (session.currentView === 'game_end') {
+                    setView('game_end');
+                }
             }
         });
 
         return () => unsubscribe();
-    }, [uid]);
+    }, [uid, view]);
 
     if (view === 'in_game' && gameSessionId) {
         return <Game uid={uid} sessionId={gameSessionId} />;
+    }
+
+    if (view === 'team_ready' && gameSessionId) {
+        return <TeamReadyScreen uid={uid} sessionId={gameSessionId} />;
+    }
+
+    if (view === 'prelude' && gameSessionId) {
+        return <GamePrelude sessionId={gameSessionId} />;
+    }
+
+    if (view === 'game_end' && gameSessionId) {
+        return <GameEndScreen uid={uid} />;
     }
 
     const containerStyles = "text-center bg-slate-900 bg-opacity-70 border border-cyan-400/30 rounded-lg p-6 md:p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur-sm";
