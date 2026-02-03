@@ -5,6 +5,9 @@ import Game from './Game';
 import TeamReadyScreen from './TeamReadyScreen';
 import GamePrelude from './GamePrelude';
 import GameEndScreen from './GameEndScreen';
+import FuturisticBackground from './ui/FuturisticBackground';
+import GlassPanel from './ui/GlassPanel';
+import NeonButton from './ui/NeonButton';
 
 interface PlayerLobbyProps {
     uid: string;
@@ -80,39 +83,133 @@ const PlayerLobby: React.FC<PlayerLobbyProps> = ({ uid }) => {
         return <GameEndScreen uid={uid} />;
     }
 
-    const containerStyles = "text-center bg-slate-900 bg-opacity-70 border border-cyan-400/30 rounded-lg p-6 md:p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur-sm";
-
     if (view === 'waiting') {
         return (
-            <div className={containerStyles}>
-                <h1 className="font-orbitron text-2xl md:text-3xl font-bold mb-4 text-cyan-300">AWAITING DEPLOYMENT</h1>
-                <p className="text-lg text-slate-300 animate-pulse">Connection established. Waiting for mission start from Control...</p>
-            </div>
+            <>
+                <FuturisticBackground />
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <GlassPanel
+                        glowing
+                        neonColor="cyan"
+                        title="🚀 AWAITING DEPLOYMENT"
+                        icon="⚡"
+                        floating
+                        className="w-full max-w-md"
+                    >
+                        <div className="text-center">
+                            <div className="animate-pulse mb-4">
+                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
+                                    <span className="text-2xl">🔗</span>
+                                </div>
+                                <p className="text-cyan-300 text-lg font-orbitron">Connection established</p>
+                                <p className="text-slate-300 mt-2">Waiting for mission start from Control...</p>
+                            </div>
+                            
+                            {/* Animated status dots */}
+                            <div className="flex justify-center space-x-2 mt-6">
+                                {[...Array(3)].map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="w-3 h-3 bg-cyan-400 rounded-full animate-bounce"
+                                        style={{ animationDelay: `${i * 0.2}s` }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </GlassPanel>
+                </div>
+            </>
         );
     }
 
-    // Default view is 'joining'
+    // Default view is 'joining' - Futuristic login screen
     return (
-        <div className={containerStyles}>
-            <h1 className="font-orbitron text-2xl md:text-3xl font-bold mb-2 text-cyan-300">AGENT LOGIN</h1>
-            <p className="text-slate-400 mb-6">Identify yourself to join the operation.</p>
-            <input
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="Enter your callsign"
-                className="p-3 bg-slate-800 border border-slate-700 rounded-md w-full max-w-sm mb-4 text-center text-lg text-cyan-300 focus:ring-2 focus:ring-cyan-400 focus:outline-none focus:border-cyan-400"
-            />
-            <button
-                onClick={handleJoinLobby}
-                className="font-orbitron bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold py-3 px-6 rounded-md w-full max-w-sm text-lg transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50"
-            >
-                CONNECT
-            </button>
-            {error && <p className="text-red-400 mt-4">{error}</p>}
-        </div>
+        <>
+            <FuturisticBackground />
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <div className="w-full max-w-lg">
+                    {/* Animated logo */}
+                    <div className="text-center mb-8 animate-float">
+                        <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 flex items-center justify-center animate-glow">
+                            <span className="text-4xl">🎯</span>
+                        </div>
+                        <h1 className="font-orbitron text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
+                            CYBER
+                        </h1>
+                        <h2 className="font-orbitron text-2xl font-bold text-cyan-300">
+                            TREASURE HUNT
+                        </h2>
+                    </div>
+
+                    <GlassPanel
+                        glowing
+                        neonColor="cyan"
+                        title="🔐 AGENT LOGIN"
+                        icon="⚡"
+                        className="w-full"
+                    >
+                        <div className="space-y-6">
+                            <p className="text-slate-300 text-center">
+                                Identify yourself to join the cyber operation
+                            </p>
+                            
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={playerName}
+                                    onChange={(e) => setPlayerName(e.target.value)}
+                                    placeholder="Enter your callsign"
+                                    className="w-full px-6 py-4 rounded-lg
+                                        bg-slate-800/60 border-2 border-cyan-400/30
+                                        text-cyan-300 text-lg font-orbitron
+                                        focus:outline-none focus:border-cyan-400
+                                        focus:shadow-lg focus:shadow-cyan-400/50
+                                        transition-all duration-300
+                                        backdrop-blur-sm"
+                                    style={{
+                                        boxShadow: 'inset 0 0 20px rgba(0, 255, 255, 0.1)'
+                                    }}
+                                />
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cyan-400">
+                                    <span className="text-xl">👤</span>
+                                </div>
+                            </div>
+
+                            <NeonButton
+                                onClick={handleJoinLobby}
+                                color="cyan"
+                                size="lg"
+                                glow
+                                className="w-full"
+                            >
+                                <span className="text-lg">🔌 CONNECT</span>
+                            </NeonButton>
+
+                            {error && (
+                                <div className="text-center">
+                                    <p className="text-red-400 font-orbitron animate-pulse">
+                                        ⚠️ {error}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Status indicators */}
+                            <div className="flex justify-center space-x-4 text-xs text-slate-400">
+                                <span className="flex items-center space-x-1">
+                                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                    <span>SYSTEM ONLINE</span>
+                                </span>
+                                <span className="flex items-center space-x-1">
+                                    <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                                    <span>NETWORK SECURE</span>
+                                </span>
+                            </div>
+                        </div>
+                    </GlassPanel>
+                </div>
+            </div>
+        </>
     );
 };
 
 export default PlayerLobby;
-

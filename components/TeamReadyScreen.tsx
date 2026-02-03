@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
+import GlassPanel from './ui/GlassPanel';
+import NeonButton from './ui/NeonButton';
 
 interface TeamReadyScreenProps {
     uid: string;
@@ -73,68 +75,176 @@ const TeamReadyScreen: React.FC<TeamReadyScreenProps> = ({ uid, sessionId }) => 
         }, 1500);
 
         return (
-            <div className="text-center bg-slate-900 bg-opacity-70 border border-cyan-400/30 rounded-lg p-6 md:p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur-sm">
-                <h1 className="font-orbitron text-2xl md:text-3xl font-bold mb-4 text-cyan-300">MISSION BRIEFING</h1>
-                <p className="text-lg text-green-400 animate-pulse">All team members ready. Initiating mission briefing...</p>
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <div className="w-full max-w-2xl text-center">
+                    <div className="animate-pulse">
+                        <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center animate-glow">
+                            <span className="text-4xl">🚀</span>
+                        </div>
+                        <h1 className="font-orbitron text-4xl font-bold mb-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                            MISSION BRIEFING
+                        </h1>
+                        <p className="text-green-400 text-lg animate-pulse">
+                            All team members ready. Initiating mission briefing...
+                        </p>
+                        
+                        {/* Loading animation */}
+                        <div className="mt-8">
+                            <div className="w-full bg-slate-800 rounded-full h-3">
+                                <div 
+                                    className="bg-gradient-to-r from-green-400 to-emerald-400 h-3 rounded-full transition-all duration-1500 ease-out"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="text-center bg-slate-900 bg-opacity-70 border border-cyan-400/30 rounded-lg p-6 md:p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur-sm">
-            <h1 className="font-orbitron text-2xl md:text-3xl font-bold mb-4 text-cyan-300">TEAM DEPLOYMENT</h1>
-            <p className="text-slate-400 mb-6">Your squad has been assembled. Confirm readiness to begin the mission.</p>
-            
-            <div className="mb-6">
-                <h2 className="font-orbitron text-lg md:text-xl font-semibold mb-3 text-cyan-400">SQUAD MEMBERS</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {teamMembers.map(player => (
-                        <div key={player.uid} className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
-                            <div className="text-lg font-semibold text-cyan-300">{player.name}</div>
-                            <div className={`text-sm mt-2 ${readyPlayers[player.uid] ? 'text-green-400' : 'text-yellow-400'}`}>
-                                {readyPlayers[player.uid] ? '✓ READY' : '⏳ AWAITING'}
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="w-full max-w-4xl">
+                <GlassPanel
+                    glowing
+                    neonColor="purple"
+                    title="👥 SQUAD DEPLOYMENT"
+                    icon="⚡"
+                    floating
+                    className="w-full"
+                >
+                    <div className="space-y-8">
+                        <div className="text-center">
+                            <p className="text-slate-300 text-lg">
+                                Your elite squad has been assembled. Confirm readiness to begin the cyber operation.
+                            </p>
+                        </div>
+
+                        {/* Team Members Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {teamMembers.map((player) => (
+                                <div
+                                    key={player.uid}
+                                    className={`
+                                        relative overflow-hidden
+                                        rounded-xl border-2 p-6 text-center
+                                        transition-all duration-300 transform
+                                        hover:scale-105
+                                        ${readyPlayers[player.uid] 
+                                            ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-400/50' 
+                                            : 'bg-slate-800/40 border-slate-600/50'
+                                        }
+                                        ${player.uid === uid ? 'ring-2 ring-cyan-400/50' : ''}
+                                    `}
+                                    style={{
+                                        boxShadow: readyPlayers[player.uid] 
+                                            ? '0 0 20px rgba(0, 255, 0, 0.3)' 
+                                            : '0 0 10px rgba(255, 255, 255, 0.1)'
+                                    }}
+                                >
+                                    {/* Status indicator */}
+                                    <div className="absolute top-3 right-3">
+                                        <div className={`w-3 h-3 rounded-full ${readyPlayers[player.uid] ? 'bg-green-400 animate-pulse' : 'bg-yellow-400 animate-pulse'}`}></div>
+                                    </div>
+
+                                    {/* Player avatar */}
+                                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+                                        <span className="text-2xl">
+                                            {player.uid === uid ? '👤' : '🤖'}
+                                        </span>
+                                    </div>
+
+                                    {/* Player info */}
+                                    <h3 className={`font-orbitron text-lg font-bold mb-2 ${
+                                        readyPlayers[player.uid] ? 'text-green-400' : 'text-cyan-300'
+                                    }`}>
+                                        {player.name}
+                                    </h3>
+                                    
+                                    <div className={`text-sm ${readyPlayers[player.uid] ? 'text-green-300' : 'text-slate-400'}`}>
+                                        {readyPlayers[player.uid] ? (
+                                            <span className="flex items-center justify-center space-x-1">
+                                                <span>✓</span>
+                                                <span>READY</span>
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center justify-center space-x-1">
+                                                <span>⏳</span>
+                                                <span>AWAITING</span>
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    {player.uid === uid && (
+                                        <div className="mt-2">
+                                            <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded-full">
+                                                YOU
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Status Summary */}
+                        <div className="text-center bg-slate-800/40 rounded-xl p-6 border border-slate-600/50">
+                            <div className="text-2xl font-bold mb-2">
+                                <span className={readyCount === teamMembers.length ? 'text-green-400' : 'text-cyan-300'}>
+                                    {readyCount}
+                                </span>
+                                <span className="text-slate-400"> / </span>
+                                <span className="text-slate-300">{teamMembers.length}</span>
                             </div>
-                            {player.uid === uid && (
-                                <div className="text-xs text-cyan-500 mt-1">YOU</div>
+                            <p className="text-slate-400">
+                                {readyCount === teamMembers.length ? (
+                                    <span className="text-green-400">All operatives ready for deployment!</span>
+                                ) : readyCount > 0 ? (
+                                    <span>{readyCount} team member{readyCount > 1 ? 's' : ''} ready. Awaiting others...</span>
+                                ) : (
+                                    <span>Be the first to confirm readiness...</span>
+                                )}
+                            </p>
+                        </div>
+
+                        {/* Action Button */}
+                        <div className="text-center">
+                            {readyPlayers[uid] ? (
+                                <div className="space-y-3">
+                                    <NeonButton
+                                        onClick={handleNotReady}
+                                        color="yellow"
+                                        size="lg"
+                                        glow
+                                        className="w-full max-w-sm"
+                                    >
+                                        <span className="text-lg">⚠️ CANCEL READINESS</span>
+                                    </NeonButton>
+                                    <p className="text-green-400 text-sm animate-pulse">
+                                        Ready status confirmed. Waiting for other team members...
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <NeonButton
+                                        onClick={handleReady}
+                                        disabled={allReady}
+                                        color="green"
+                                        size="lg"
+                                        glow
+                                        pulse
+                                        className="w-full max-w-sm"
+                                    >
+                                        <span className="text-lg">✅ CONFIRM READINESS</span>
+                                    </NeonButton>
+                                    <p className="text-slate-400 text-sm">
+                                        {readyCount > 0 ? `${readyCount} team member${readyCount > 1 ? 's' : ''} ready. Waiting for others...` : 'Be the first to confirm readiness.'}
+                                    </p>
+                                </div>
                             )}
                         </div>
-                    ))}
-                </div>
-            </div>
-
-            <div className="mb-6">
-                <div className="text-lg text-slate-300">
-                    Ready Status: <span className={`font-bold ${readyCount === teamMembers.length ? 'text-green-400' : 'text-yellow-400'}`}>
-                        {readyCount} / {teamMembers.length}
-                    </span>
-                </div>
-            </div>
-
-            <div className="space-y-3">
-                {readyPlayers[uid] ? (
-                    <div>
-                        <button
-                            onClick={handleNotReady}
-                            className="font-orbitron bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-3 px-6 rounded-md w-full max-w-sm text-lg transition-all duration-300"
-                        >
-                            CANCEL READINESS
-                        </button>
-                        <p className="text-green-400 mt-2">Ready status confirmed. Waiting for other team members...</p>
                     </div>
-                ) : (
-                    <div>
-                        <button
-                            onClick={handleReady}
-                            disabled={allReady}
-                            className="font-orbitron bg-green-500 hover:bg-green-400 text-slate-900 font-bold py-3 px-6 rounded-md w-full max-w-sm text-lg transition-all duration-300 disabled:bg-slate-600 disabled:shadow-none"
-                        >
-                            CONFIRM READINESS
-                        </button>
-                        <p className="text-slate-400 text-sm mt-2">
-                            {readyCount > 0 ? `${readyCount} team member(s) ready. Waiting for others...` : 'Be the first to confirm readiness.'}
-                        </p>
-                    </div>
-                )}
+                </GlassPanel>
             </div>
         </div>
     );

@@ -17,7 +17,7 @@ export const LEVELS: Level[] = [
         ],
         answer: "Naan Dhan Answer",
         audioClue: "/audio/vittupona_loop.mp3",
-        secretEncodings: ["Base64"],
+        secretEncodings: ["base64"],
     },
     {
         question: "Decode the binary message to reveal the next phrase.",
