@@ -46,7 +46,7 @@ export const LEVELS: Level[] = [
             "Suthi Paaru Answer 100",
             "Kannuku Munnaddi Theriyurathu ellame unmai illa Beti.",
         ],
-        answer: "Avlo ariviu iruka super !",
+        answer: "Awesome Dude You Made It !",
         secretEncodings: ["ROT13"],
     },
     {
