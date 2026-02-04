@@ -69,7 +69,7 @@ const Leaderboard: React.FC = () => {
                 </thead>
                 <tbody>
                     {completedSessions.map((session, index) => {
-                        const teamName = Object.values(session.players).map(p => p.name).join(', ');
+                        const teamName = session.players ? Object.values(session.players).map(p => p.name).join(', ') : 'Unknown Team';
                         return (
                             <tr key={session.id} className="border-t border-slate-700 hover:bg-slate-800/50">
                                 <td className="p-2 font-bold text-cyan-300">#{index + 1}</td>

@@ -60,7 +60,8 @@ const GameStats: React.FC = () => {
         }
 
         if (!slots.includes(null)) {
-            alert(`Team "${Object.values(session.players).map(p => p.name).join(', ')}" has a full inventory.`);
+            const teamName = session.players ? Object.values(session.players).map(p => p.name).join(', ') : 'Unknown Team';
+            alert(`Team "${teamName}" has a full inventory.`);
             return;
         }
 
@@ -98,7 +99,7 @@ const GameStats: React.FC = () => {
                 </thead>
                 <tbody>
                     {activeSessions.map(session => {
-                        const teamName = Object.values(session.players).map(p => p.name).join(', ');
+                        const teamName = session.players ? Object.values(session.players).map(p => p.name).join(', ') : 'Unknown Team';
                         
                         const slots = Array(3).fill(null);
                         if (session.powerups && session.powerups.slots) {
